@@ -1,0 +1,52 @@
+[
+  {
+    "id": "86e10ae1-1847-46b9-afa7-84eca776b6a8",
+    "name": "Kuruwita Maha Vidyalaya",
+    "place": "Kuruwita",
+    "lat": 6.7841,
+    "lng": 80.3689,
+    "capacity": 200,
+    "occupancy": 84,
+    "status": "open"
+  },
+  {
+    "id": "413a7e19-3c0b-49a2-8490-8899ac326457",
+    "name": "Kuruwita Temple Hall",
+    "place": "Kuruwita",
+    "lat": 6.7792,
+    "lng": 80.3611,
+    "capacity": 120,
+    "occupancy": 118,
+    "status": "almost full"
+  },
+  {
+    "id": "324ae4c5-5a99-4028-ac2f-12d230c7f0c9",
+    "name": "Ratnapura Community Centre",
+    "place": "Ratnapura",
+    "lat": 6.6845,
+    "lng": 80.3985,
+    "capacity": 300,
+    "occupancy": 0,
+    "status": "open"
+  },
+  {
+    "id": "8c43d27f-4692-4f0d-8108-dce0610d215a",
+    "name": "Eheliyagoda Town Hall",
+    "place": "Eheliyagoda",
+    "lat": 6.8501,
+    "lng": 80.2655,
+    "capacity": 150,
+    "occupancy": 150,
+    "status": "full"
+  },
+  {
+    "id": "6a69ce13-a421-4b27-9f26-928e60d95c67",
+    "name": "Pelmadulla Primary School",
+    "place": "Pelmadulla",
+    "lat": 6.6175,
+    "lng": 80.5012,
+    "capacity": 90,
+    "occupancy": 0,
+    "status": "closed"
+  }
+]

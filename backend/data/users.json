@@ -1,0 +1,23 @@
+[
+  {
+    "id": "e1797cbd-89ba-4ec9-916a-5c80844992ed",
+    "name": "Operator One",
+    "email": "operator@dpercp.test",
+    "role": "operator",
+    "password": "ChangeMe123!"
+  },
+  {
+    "id": "3b55bbfa-afcc-49e8-a3a8-8a6c024b89a5",
+    "name": "Admin One",
+    "email": "admin@dpercp.test",
+    "role": "admin",
+    "password": "ChangeMe123!"
+  },
+  {
+    "id": "89930ea0-6d83-47cc-b5c1-6e4d5a5f1b54",
+    "name": "Field Team B",
+    "email": "field@dpercp.test",
+    "role": "field",
+    "password": "ChangeMe123!"
+  }
+]
