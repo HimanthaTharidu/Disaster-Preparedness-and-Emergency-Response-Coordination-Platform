@@ -1,33 +1,18 @@
-export type Language = 'en' | 'si' | 'ta';
-
-export interface LoginInput
-{
-    identifier: string;
-    password: string;
-    preferred_language: Language;
-}
-
-export interface RegisterInput
-{
-    full_name: string;
-    email: string;
-    phone: string;
-    password: string;
-    preferred_language: Language;
-}
 
 export class AuthError extends Error
 {
-    constructor(public code: 'network' | 'invalid' | 'duplicate' | 'server' | 'timeout')
+    constructor(code)
     {
         super(code);
+        this.code = code;
+        this.name = 'AuthError';
     }
 }
 
 export const previewMode = import.meta.env.VITE_AUTH_MODE !== 'api';
 const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1').replace(/\/$/, '');
 
-async function post(path: string, input: LoginInput | RegisterInput): Promise<void>
+async function post(path, input)
 {
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 15000);
@@ -73,7 +58,7 @@ async function post(path: string, input: LoginInput | RegisterInput): Promise<vo
     }
 }
 
-export async function signIn(input: LoginInput): Promise<'preview' | 'submitted'>
+export async function signIn(input)
 {
     if (previewMode)
     {
@@ -83,7 +68,7 @@ export async function signIn(input: LoginInput): Promise<'preview' | 'submitted'
     return 'submitted';
 }
 
-export async function register(input: RegisterInput): Promise<'preview' | 'submitted'>
+export async function register(input)
 {
     if (previewMode)
     {
