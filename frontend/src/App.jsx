@@ -15,7 +15,7 @@ function currentScreen()
 export default function App()
 {
     const [screen, setScreen] = useState(currentScreen);
-    const [language, setLanguage] = useState('en');
+    const language = 'en';
 
     useEffect(() =>
     {
@@ -47,13 +47,11 @@ export default function App()
     ? (
         <Register
             language={language}
-            onLanguageChange={setLanguage}
         />
     )
     : (
         <Login
             language={language}
-            onLanguageChange={setLanguage}
         />
     );
 }
