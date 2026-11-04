@@ -40,9 +40,9 @@ const en = {
     timeout: 'The request timed out. Please try again.'
 };
 
-type Dictionary = typeof en;
 
-const si: Dictionary = {
+
+const si= {
     signInTitle: 'ඔබගේ DMC ගිණුමෙන් පිවිසෙන්න. කාර්ය මණ්ඩලය සඳහා පමණි.',
     registerTitle: 'DMC කාර්ය මණ්ඩල ගිණුමක් ඉල්ලන්න.',
     identifier: 'ඊමේල් ලිපිනය හෝ දුරකථන අංකය',
@@ -84,7 +84,7 @@ const si: Dictionary = {
     timeout: 'ඉල්ලීමේ කාලය ඉක්මවා ඇත. නැවත උත්සාහ කරන්න.'
 };
 
-const ta: Dictionary = {
+const ta = {
     signInTitle: 'உங்கள் DMC கணக்கில் உள்நுழையவும். பணியாளர்களுக்கு மட்டும்.',
     registerTitle: 'DMC பணியாளர் கணக்கைக் கோரவும்.',
     identifier: 'மின்னஞ்சல் அல்லது தொலைபேசி',
@@ -127,4 +127,4 @@ const ta: Dictionary = {
 };
 
 export const dictionaries = { en, si, ta };
-export type MessageKey = keyof Dictionary;
+

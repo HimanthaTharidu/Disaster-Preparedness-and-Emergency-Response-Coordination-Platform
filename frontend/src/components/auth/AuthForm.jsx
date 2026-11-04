@@ -1,67 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
-import { AuthError, previewMode, register, signIn } from './api/auth';
-import type { Language } from './api/auth';
-import { dictionaries } from './locales';
-import type { MessageKey } from './locales';
+import React, { useRef, useState } from 'react';
+import { AuthError, previewMode, register, signIn } from '../../api/auth.js';
+import { dictionaries } from '../../locales.js';
 
-type Screen = 'login' | 'register';
-type Values = { name: string; identifier: string; email: string; phone: string; password: string; confirm: string };
-type Errors = Partial<Record<keyof Values, MessageKey>>;
 
-function currentScreen(): Screen
-{
-    return window.location.hash === '#/register' ? 'register' : 'login';
-}
-
-export default function App()
-{
-    const [screen, setScreen] = useState<Screen>(currentScreen);
-    const [language, setLanguage] = useState<Language>('en');
-
-    useEffect(() => {
-        const updateScreen = () => setScreen(currentScreen());
-        window.addEventListener('hashchange', updateScreen);
-        return () => window.removeEventListener('hashchange', updateScreen);
-    }, []);
-
-    useEffect(() => {
-        document.documentElement.lang = language;
-        document.title = `DPERCP | ${screen === 'login' ? dictionaries[language].signIn : dictionaries[language].registerLink}`;
-    }, [language, screen]);
-
-    return <AuthForm key={screen} screen={screen} language={language} onLanguageChange={setLanguage} />;
-}
-
-function AuthForm({ screen, language, onLanguageChange }: {
-    screen: Screen;
-    language: Language;
-    onLanguageChange: (value: Language) => void;
-})
+export default function AuthForm({ screen, language, onLanguageChange })
 {
     const text = dictionaries[language];
     const isRegister = screen === 'register';
-    const [values, setValues] = useState<Values>({ name: '', identifier: '', email: '', phone: '', password: '', confirm: '' });
-    const [errors, setErrors] = useState<Errors>({});
+    const [values, setValues] = useState({ name: '', identifier: '', email: '', phone: '', password: '', confirm: '' });
+    const [errors, setErrors] = useState({});
     const [visible, setVisible] = useState(false);
     const [pending, setPending] = useState(false);
-    const [notice, setNotice] = useState<{ key: MessageKey; error: boolean } | null>(null);
+    const [notice, setNotice] = useState(null);
     const busy = useRef(false);
-    const statusRef = useRef<HTMLDivElement>(null);
+    const statusRef = useRef(null);
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phonePattern = /^\+?\d{9,15}$/;
-    const cleanPhone = (value: string) => value.replace(/[\s()-]/g, '');
+    const cleanPhone = (value) => value.replace(/[\s()-]/g, '');
 
-    function change(field: keyof Values, value: string)
+    function change(field, value)
     {
         setValues(current => ({ ...current, [field]: value }));
         setErrors(current => ({ ...current, [field]: undefined, ...(field === 'password' ? { confirm: undefined } : {}) }));
         setNotice(null);
     }
 
-    function validate(): Errors
+    function validate()
     {
-        const next: Errors = {};
+        const next = {};
         if (isRegister)
         {
             if (!values.name.trim()) next.name = 'required';
@@ -84,7 +50,7 @@ function AuthForm({ screen, language, onLanguageChange }: {
         return next;
     }
 
-    async function submit(event: FormEvent<HTMLFormElement>)
+    async function submit(event)
     {
         event.preventDefault();
         if (busy.current) return;
@@ -123,7 +89,7 @@ function AuthForm({ screen, language, onLanguageChange }: {
         }
     }
 
-    function field(name: keyof Values, label: string, placeholder: string, type = 'text', autoComplete = '')
+    function field(name, label, placeholder, type = 'text', autoComplete = '')
     {
         const passwordField = name === 'password' || name === 'confirm';
         const error = errors[name];
@@ -189,7 +155,7 @@ function AuthForm({ screen, language, onLanguageChange }: {
                         </button>
                         <div className="field language-field">
                             <label htmlFor="language">{text.language}</label>
-                            <select id="language" value={language} onChange={event => onLanguageChange(event.target.value as Language)}>
+                            <select id="language" value={language} onChange={event => onLanguageChange(event.target.value)}>
                                 <option value="en">English</option>
                                 <option value="si">සිංහල</option>
                                 <option value="ta">தமிழ்</option>
