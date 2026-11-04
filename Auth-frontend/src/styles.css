@@ -1,0 +1,98 @@
+:root {
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    color: #101a31;
+    background: #f7f9fb;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: 400;
+    --navy: #203d63;
+    --border: #d7e1ee;
+    --muted: #4b5d78;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+button, a, select { -webkit-tap-highlight-color: transparent; }
+
+.auth-page {
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 500px;
+    padding: 22px 21px 18px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 0 0 1px rgb(215 225 238 / 10%);
+}
+
+h1 { margin: 0; color: var(--navy); font-size: 30px; line-height: 1.3; font-weight: 650; letter-spacing: -.6px; }
+.subtitle { margin: 20px 0 21px; color: var(--muted); font-size: 18px; line-height: 1.6; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.fields { display: grid; gap: 44px; }
+.field { min-width: 0; }
+label { display: block; margin-bottom: 6px; font-size: 15px; line-height: 1.4; }
+.input-wrap { position: relative; }
+input, select {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 15px;
+    background: white;
+    color: #101a31;
+    font-size: 18px;
+    line-height: 1.35;
+    transition: border-color .15s, box-shadow .15s;
+}
+input::placeholder { color: var(--muted); opacity: 1; }
+input[aria-invalid="true"] { border-color: #b42318; }
+input:focus, select:focus { outline: none; border-color: #476a97; box-shadow: 0 0 0 3px rgb(32 61 99 / 12%); }
+.password-input { padding-right: 48px; }
+.password-toggle { position: absolute; top: 2px; right: 3px; width: 44px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.password-toggle svg { width: 21px; height: 21px; vertical-align: middle; }
+.password-toggle:hover { background: #f1f5f9; }
+.submit-button { width: 100%; min-height: 46px; margin-top: 44px; border: 1px solid var(--navy); border-radius: 10px; background: var(--navy); color: white; font-size: 18px; line-height: 1.4; font-weight: 600; padding: 10px 16px; cursor: pointer; transition: background .15s; }
+.submit-button:hover { background: #162f50; }
+.language-field { margin-top: 19px; }
+select { cursor: pointer; padding-right: 35px; }
+.switch-page { margin: 19px 0 0; text-align: center; font-size: 14px; line-height: 1.6; color: var(--muted); }
+a { color: var(--navy); font-weight: 600; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+button:focus-visible, a:focus-visible { outline: 3px solid #9db8d9; outline-offset: 3px; }
+.hint, .approval-note { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 6px 0 0; }
+.field-error { margin: 6px 0 0; color: #b42318; font-size: 13px; line-height: 1.5; }
+.notice { margin-top: 18px; border: 1px solid #b7d6cb; border-radius: 9px; padding: 12px; background: #f0f8f4; color: #235741; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.notice-error { border-color: #f0c0b9; background: #fff5f3; color: #912018; }
+.preview-badge { width: fit-content; margin: 14px auto 0; padding: 3px 9px; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 11px; line-height: 1.5; color: #64748b; background: #f8fafc; }
+.registration-card .fields { gap: 18px; }
+.registration-card .subtitle { margin-top: 13px; }
+.registration-card .submit-button { margin-top: 22px; }
+.approval-note { margin-top: 17px; }
+fieldset:disabled { opacity: .7; }
+fieldset:disabled button, fieldset:disabled input, fieldset:disabled select { cursor: wait; }
+
+@media (max-width: 540px) {
+    .auth-page { padding: 24px 16px; }
+    .auth-card { padding: 24px 20px 19px; }
+    h1 { font-size: 28px; }
+    .subtitle { font-size: 16px; }
+    input, select { font-size: 16px; }
+    .fields { gap: 30px; }
+    .submit-button { margin-top: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+}
