@@ -153,14 +153,7 @@ export default function AuthForm({ screen, language, onLanguageChange })
                         <button className="submit-button" type="submit">
                             {pending ? text.wait : isRegister ? text.requestAccount : text.signIn}
                         </button>
-                        <div className="field language-field">
-                            <label htmlFor="language">{text.language}</label>
-                            <select id="language" value={language} onChange={event => onLanguageChange(event.target.value)}>
-                                <option value="en">English</option>
-                                <option value="si">සිංහල</option>
-                                <option value="ta">தமிழ்</option>
-                            </select>
-                        </div>
+                        
                     </fieldset>
                 </form>
 
@@ -171,7 +164,7 @@ export default function AuthForm({ screen, language, onLanguageChange })
                         {isRegister ? text.signIn : text.registerLink}
                     </a>
                 </p>
-                {previewMode && <p className="preview-badge">{text.previewBadge}</p>}
+                
             </section>
         </main>
     );
