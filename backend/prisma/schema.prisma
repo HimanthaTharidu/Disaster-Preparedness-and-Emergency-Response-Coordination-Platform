@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  operator
+  admin
+  field
+}
+
+enum IncidentStatus {
+  reported
+  verified
+  assigned
+  resolved
+}
+
+enum IncidentPriority {
+  low
+  medium
+  high
+  critical
+}
+
+model User {
+  id           String         @id @default(uuid()) @db.Uuid
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         UserRole
+  refreshTokens RefreshToken[]
+  phoneNumber String? @db.VarChar(20)
+}
+
+model Incident {
+  id           String   @id @default(uuid()) @db.Uuid
+  title        String
+  hazard       String
+  priority     String
+  status       String
+  place        String
+  lat          Float
+  lng          Float
+  reportedAt   DateTime
+  description  String
+  peopleAtRisk Int
+}
+
+model Shelter {
+  id       String @id @default(uuid()) @db.Uuid
+  name     String
+  place    String
+  lat      Float
+  lng      Float
+  capacity Int
+  occupancy Int
+  status   String
+}
+
+model RefreshToken {
+  tokenHash String   @id
+  userId    String   @db.Uuid
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
