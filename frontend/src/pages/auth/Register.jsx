@@ -1,13 +1,7 @@
 import React from 'react';
 import AuthForm from '../../components/auth/AuthForm.jsx';
 
-export default function Register({ language, onLanguageChange })
+export default function Register()
 {
-    return (
-        <AuthForm
-            screen="register"
-            language={language}
-            onLanguageChange={onLanguageChange}
-        />
-    );
+    return <AuthForm screen="register" />;
 }

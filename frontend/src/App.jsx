@@ -1,57 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
-import { dictionaries } from './locales.js';
 
-function currentScreen()
+function currentPage()
 {
     const hash = window.location.hash;
 
-    return hash === '#/signup' || hash === '#/register'
-        ? 'signup'
+    return hash === '#/register' || hash === '#/signup'
+        ? 'register'
         : 'login';
 }
 
 export default function App()
 {
-    const [screen, setScreen] = useState(currentScreen);
-    const language = 'en';
+    const [page, setPage] = useState(currentPage);
 
     useEffect(() =>
     {
-        function updateScreen()
+        function updatePage()
         {
-            setScreen(currentScreen());
+            setPage(currentPage());
         }
 
-        window.addEventListener('hashchange', updateScreen);
+        window.addEventListener('hashchange', updatePage);
 
         return () =>
         {
-            window.removeEventListener('hashchange', updateScreen);
+            window.removeEventListener('hashchange', updatePage);
         };
     }, []);
 
     useEffect(() =>
     {
-        document.documentElement.lang = language;
+        document.documentElement.lang = 'en';
 
-        document.title = `DPERCP | ${
-            screen === 'login'
-                ? dictionaries[language].signIn
-                : dictionaries[language].registerLink
-        }`;
-    }, [screen, language]);
+        document.title = page === 'register'
+            ? 'DPERCP | Register'
+            : 'DPERCP | Sign in';
+    }, [page]);
 
-    return screen === 'signup'
-    ? (
-        <Register
-            language={language}
-        />
-    )
-    : (
-        <Login
-            language={language}
-        />
-    );
+    return page === 'register'
+        ? <Register />
+        : <Login />;
 }
