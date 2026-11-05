@@ -65,14 +65,7 @@ export default function Sidebar({ navigationItems, open, onClose }) {
           })}
         </nav>
 
-        <div className="border-t border-slate-100 p-4">
-          <p className="text-xs text-slate-400">
-            Disaster management platform
-          </p>
-          <p className="mt-1 text-xs font-semibold text-slate-500">
-            Admin portal · v1.0
-          </p>
-        </div>
+        
       </aside>
     </>
   );
