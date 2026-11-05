@@ -1,12 +1,14 @@
-import { readFileSync } from 'node:fs';
-import { hashPassword } from '../utils/password.js';
+import { prisma } from '../db/prisma.js';
 
-const seed = JSON.parse(readFileSync(new URL('../data/users.json', import.meta.url)));
+export const findByEmail = (email) =>
+  prisma.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+  });
 
-// Mock data: seed passwords are hashed once at startup, plain text is never kept.
-const users = await Promise.all(
-  seed.map(async ({ password, ...user }) => ({ ...user, passwordHash: await hashPassword(password) }))
-);
+export const findById = (id) =>
+  prisma.user.findUnique({
+    where: { id },
+  });
 
-export const findByEmail = (email) => users.find((u) => u.email === email.toLowerCase());
-export const findById = (id) => users.find((u) => u.id === id);
+export const create = (data) =>
+  prisma.user.create({ data });

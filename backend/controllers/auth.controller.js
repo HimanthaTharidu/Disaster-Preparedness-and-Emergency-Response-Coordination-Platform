@@ -5,12 +5,16 @@ export async function login(req, res) {
   res.json(await authService.login(email, password));
 }
 
-export function refresh(req, res) {
-  res.json(authService.refresh(req.body.refreshToken));
+export async function register(req, res) {
+  res.status(201).json(await authService.register(req.body));
 }
 
-export function logout(req, res) {
-  authService.logout(req.body.refreshToken);
+export async function refresh(req, res) {
+  res.json(await authService.refresh(req.body.refreshToken));
+}
+
+export async function logout(req, res) {
+  await authService.logout(req.body.refreshToken);
   res.status(204).end();
 }
 
