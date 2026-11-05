@@ -5,11 +5,20 @@ import authRoute from './routes/auth.route.js';
 import incidentsRoute from './routes/incidents.route.js';
 import sheltersRoute from './routes/shelters.route.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import swaggerUi from 'swagger-ui-express';
+import { parse } from 'yaml';
+import { readFileSync } from 'node:fs';
 
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 app.use(express.json());
+
+const openApiDocument = parse(
+  readFileSync(new URL('./docs/openapi.yaml', import.meta.url), 'utf8')
+);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 app.use('/health', healthRoute);
 app.use('/auth', authRoute);
