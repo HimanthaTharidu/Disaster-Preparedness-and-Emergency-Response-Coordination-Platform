@@ -1,5 +1,5 @@
 {
-  "name": "dpercp-auth-frontend",
+  "name": "dpercp-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -9,12 +9,15 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwindcss": "^4.3.4"
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.1"
   },
   "devDependencies": {
-    "vite": "^6.1.0"
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.7"
   }
 }
