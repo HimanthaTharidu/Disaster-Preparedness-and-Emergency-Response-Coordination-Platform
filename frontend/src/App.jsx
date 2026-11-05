@@ -29,6 +29,7 @@ import IncidentDetails from "./pages/IncidentDetails";
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
 
+
 const navigationItems = [
   { label: "Overview", path: "/", icon: LayoutDashboard },
   { label: "Incidents", path: "/incidents", icon: AlertTriangle },
@@ -67,6 +68,7 @@ export default function App() {
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/hazard-types" element={<HazardTypes />} />
+               
             </Route>
         </Route>
 
