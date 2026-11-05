@@ -1,170 +1,488 @@
 import React, { useRef, useState } from 'react';
-import { AuthError, previewMode, register, signIn } from '../../api/auth.js';
-import { dictionaries } from '../../locales.js';
+import {
+    AuthError,
+    register,
+    signIn
+} from '../../api/auth.js';
 
+const inputClasses =
+    'block min-h-12 w-full rounded-[10px] border bg-white px-4 py-3 ' +
+    'text-base text-slate-900 placeholder:text-slate-500 ' +
+    'outline-none transition focus:border-[#476a97] ' +
+    'focus:ring-4 focus:ring-[#203d63]/10 ' +
+    'disabled:cursor-wait sm:text-lg';
 
-export default function AuthForm({ screen, language, onLanguageChange })
+const requestErrors = {
+    network: 'Unable to connect. Please check your connection and try again.',
+    invalid: 'Sign-in was not accepted. Check your details or contact your administrator.',
+    duplicate: 'An account with those details already exists.',
+    server: 'The request could not be completed. Please try again.',
+    timeout: 'The request timed out. Please try again.'
+};
+
+function InputField({
+    name,
+    label,
+    placeholder,
+    type = 'text',
+    autoComplete,
+    value,
+    error,
+    hint,
+    onChange,
+    canToggle = false,
+    visible = false,
+    onToggle
+})
 {
-    const text = dictionaries[language];
+    const isPassword = name === 'password' || name === 'confirm';
+
+    const describedBy = [
+        error ? `${name}-error` : '',
+        hint ? `${name}-hint` : ''
+    ].filter(Boolean).join(' ') || undefined;
+
+    return (
+        <div>
+            <label
+                htmlFor={name}
+                className="mb-1.5 block text-[15px] font-medium text-slate-900"
+            >
+                {label}
+            </label>
+
+            <div className="relative">
+                <input
+                    id={name}
+                    name={name}
+                    type={isPassword ? visible ? 'text' : 'password' : type}
+                    value={value}
+                    onChange={event => onChange(name, event.target.value)}
+                    placeholder={placeholder}
+                    autoComplete={autoComplete}
+                    inputMode={
+                        name === 'phone'
+                            ? 'tel'
+                            : name === 'email'
+                                ? 'email'
+                                : undefined
+                    }
+                    maxLength={isPassword ? 128 : name === 'phone' ? 24 : 254}
+                    required
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={describedBy}
+                    className={[
+                        inputClasses,
+                        error ? 'border-red-600' : 'border-[#d7e1ee]',
+                        canToggle ? 'pr-14' : ''
+                    ].join(' ')}
+                />
+
+                {canToggle && (
+                    <button
+                        type="button"
+                        onClick={onToggle}
+                        aria-label={visible ? 'Hide password' : 'Show password'}
+                        aria-pressed={visible}
+                        className="absolute top-1/2 right-1 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#203d63]"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            className="size-5"
+                            aria-hidden="true"
+                        >
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                            <circle cx="12" cy="12" r="3" />
+                            {visible && <path d="m3 3 18 18" />}
+                        </svg>
+                    </button>
+                )}
+            </div>
+
+            {hint && (
+                <p
+                    id={`${name}-hint`}
+                    className="mt-1.5 text-sm leading-6 text-slate-500"
+                >
+                    {hint}
+                </p>
+            )}
+
+            {error && (
+                <p
+                    id={`${name}-error`}
+                    className="mt-1.5 text-sm leading-6 text-red-700"
+                >
+                    {error}
+                </p>
+            )}
+        </div>
+    );
+}
+
+export default function AuthForm({ screen })
+{
     const isRegister = screen === 'register';
-    const [values, setValues] = useState({ name: '', identifier: '', email: '', phone: '', password: '', confirm: '' });
+
+    const [values, setValues] = useState({
+        name: '',
+        identifier: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirm: ''
+    });
+
     const [errors, setErrors] = useState({});
     const [visible, setVisible] = useState(false);
     const [pending, setPending] = useState(false);
     const [notice, setNotice] = useState(null);
+
     const busy = useRef(false);
     const statusRef = useRef(null);
+
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phonePattern = /^\+?\d{9,15}$/;
-    const cleanPhone = (value) => value.replace(/[\s()-]/g, '');
 
-    function change(field, value)
+    function cleanPhone(value)
     {
-        setValues(current => ({ ...current, [field]: value }));
-        setErrors(current => ({ ...current, [field]: undefined, ...(field === 'password' ? { confirm: undefined } : {}) }));
+        return value.replace(/[\s()-]/g, '');
+    }
+
+    function change(name, value)
+    {
+        setValues(current => ({
+            ...current,
+            [name]: value
+        }));
+
+        setErrors(current => ({
+            ...current,
+            [name]: undefined,
+            ...(name === 'password' ? { confirm: undefined } : {})
+        }));
+
         setNotice(null);
     }
 
     function validate()
     {
         const next = {};
+
         if (isRegister)
         {
-            if (!values.name.trim()) next.name = 'required';
-            if (!values.email.trim()) next.email = 'required';
-            else if (!emailPattern.test(values.email.trim())) next.email = 'invalidEmail';
-            if (!values.phone.trim()) next.phone = 'required';
-            else if (!phonePattern.test(cleanPhone(values.phone))) next.phone = 'invalidPhone';
-            if (!values.password) next.password = 'required';
-            else if (values.password.length < 8) next.password = 'shortPassword';
-            if (!values.confirm) next.confirm = 'required';
-            else if (values.confirm !== values.password) next.confirm = 'mismatch';
+            if (!values.name.trim())
+            {
+                next.name = 'Enter your full name.';
+            }
+
+            if (!emailPattern.test(values.email.trim()))
+            {
+                next.email = 'Enter a valid email address.';
+            }
+
+            if (!phonePattern.test(cleanPhone(values.phone)))
+            {
+                next.phone = 'Enter a valid phone number.';
+            }
+
+            if (values.password.length < 8)
+            {
+                next.password = 'Use at least 8 characters.';
+            }
+
+            if (!values.confirm)
+            {
+                next.confirm = 'Confirm your password.';
+            }
+            else if (values.confirm !== values.password)
+            {
+                next.confirm = 'The passwords do not match.';
+            }
         }
         else
         {
-            if (!values.identifier.trim()) next.identifier = 'required';
-            else if (!emailPattern.test(values.identifier.trim()) && !phonePattern.test(cleanPhone(values.identifier)))
-                next.identifier = 'invalidIdentifier';
-            if (!values.password) next.password = 'required';
+            const identifier = values.identifier.trim();
+
+            if (
+                !emailPattern.test(identifier) &&
+                !phonePattern.test(cleanPhone(identifier))
+            )
+            {
+                next.identifier = 'Enter a valid email address or phone number.';
+            }
+
+            if (!values.password)
+            {
+                next.password = 'Enter your password.';
+            }
         }
+
         return next;
     }
 
     async function submit(event)
     {
         event.preventDefault();
-        if (busy.current) return;
-        setNotice(null);
-        const next = validate();
-        setErrors(next);
-        const first = Object.keys(next)[0];
-        if (first)
+
+        if (busy.current)
         {
-            document.getElementById(first)?.focus();
             return;
         }
+
+        setNotice(null);
+
+        const next = validate();
+        setErrors(next);
+
+        const firstError = Object.keys(next)[0];
+
+        if (firstError)
+        {
+            document.getElementById(firstError)?.focus();
+            return;
+        }
+
         busy.current = true;
         setPending(true);
+
         try
         {
-            const result = isRegister
-                ? await register({ full_name: values.name.trim(), email: values.email.trim(), phone: cleanPhone(values.phone), password: values.password, preferred_language: language })
-                : await signIn({ identifier: values.identifier.includes('@') ? values.identifier.trim() : cleanPhone(values.identifier), password: values.password, preferred_language: language });
-            setNotice({ key: result === 'preview' ? 'previewSuccess' : isRegister ? 'registerSuccess' : 'loginSuccess', error: false });
+            let result;
+
+            if (isRegister)
+            {
+                result = await register({
+                    full_name: values.name.trim(),
+                    email: values.email.trim(),
+                    phone: cleanPhone(values.phone),
+                    password: values.password,
+                    preferred_language: 'en'
+                });
+            }
+            else
+            {
+                result = await signIn({
+                    identifier: values.identifier.includes('@')
+                        ? values.identifier.trim()
+                        : cleanPhone(values.identifier),
+                    password: values.password,
+                    preferred_language: 'en'
+                });
+            }
+
+            const message = result === 'preview'
+                ? 'Form validated. The backend is not connected, so no account was created or signed in.'
+                : isRegister
+                    ? 'Account request submitted. Staff access requires administrator approval.'
+                    : 'Sign-in request accepted.';
+
+            setNotice({
+                error: false,
+                message
+            });
+
             if (result !== 'preview')
             {
-                setValues(current => ({ ...current, password: '', confirm: '' }));
+                setValues(current => ({
+                    ...current,
+                    password: '',
+                    confirm: ''
+                }));
+
                 setVisible(false);
             }
         }
         catch (error)
         {
-            setNotice({ key: error instanceof AuthError ? error.code : 'server', error: true });
+            setNotice({
+                error: true,
+                message: error instanceof AuthError
+                    ? requestErrors[error.code] || requestErrors.server
+                    : requestErrors.server
+            });
         }
         finally
         {
             busy.current = false;
             setPending(false);
-            window.setTimeout(() => statusRef.current?.focus(), 0);
+
+            window.setTimeout(() => {
+                statusRef.current?.focus();
+            }, 0);
         }
     }
 
-    function field(name, label, placeholder, type = 'text', autoComplete = '')
-    {
-        const passwordField = name === 'password' || name === 'confirm';
-        const error = errors[name];
-        const hint = name === 'password' && isRegister;
-        const descriptions = [error ? `${name}-error` : '', hint ? 'password-hint' : ''].filter(Boolean).join(' ') || undefined;
-        return (
-            <div className="field" key={name}>
-                <label htmlFor={name}>{label}</label>
-                <div className="input-wrap">
-                    <input
-                        id={name}
-                        name={name}
-                        type={passwordField ? visible ? 'text' : 'password' : type}
-                        value={values[name]}
-                        onChange={event => change(name, event.target.value)}
-                        placeholder={placeholder}
-                        autoComplete={autoComplete}
-                        aria-invalid={Boolean(error)}
-                        aria-describedby={descriptions}
-                        required
-                        maxLength={passwordField ? 128 : name === 'name' ? 120 : name === 'phone' ? 24 : 254}
-                        inputMode={name === 'phone' ? 'tel' : name === 'email' ? 'email' : undefined}
-                        className={passwordField && name === 'password' ? 'password-input' : undefined}
-                    />
-                    {name === 'password' && (
-                        <button type="button" className="password-toggle" onClick={() => setVisible(current => !current)} aria-label={visible ? text.hide : text.show} aria-pressed={visible}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-                                <circle cx="12" cy="12" r="3" />
-                                {visible && <path d="m3 3 18 18" />}
-                            </svg>
-                        </button>
-                    )}
-                </div>
-                {hint && <p className="hint" id="password-hint">{text.passwordHint}</p>}
-                {error && <p className="field-error" id={`${name}-error`}>{text[error]}</p>}
-            </div>
-        );
-    }
+    const fields = isRegister
+        ? [
+            {
+                name: 'name',
+                label: 'Full name',
+                placeholder: 'Enter your full name',
+                autoComplete: 'name'
+            },
+            {
+                name: 'email',
+                label: 'Email address',
+                placeholder: 'name@dmc.gov.lk',
+                type: 'email',
+                autoComplete: 'email'
+            },
+            {
+                name: 'phone',
+                label: 'Phone number',
+                placeholder: '077 123 4567',
+                type: 'tel',
+                autoComplete: 'tel'
+            },
+            {
+                name: 'password',
+                label: 'Password',
+                placeholder: 'Enter password',
+                autoComplete: 'new-password',
+                hint: 'Use at least 8 characters.'
+            },
+            {
+                name: 'confirm',
+                label: 'Confirm password',
+                placeholder: 'Re-enter password',
+                autoComplete: 'new-password'
+            }
+        ]
+        : [
+            {
+                name: 'identifier',
+                label: 'Email or phone',
+                placeholder: 'name@dmc.gov.lk',
+                autoComplete: 'username'
+            },
+            {
+                name: 'password',
+                label: 'Password',
+                placeholder: 'Enter password',
+                autoComplete: 'current-password'
+            }
+        ];
 
     return (
-        <main className="auth-page">
-            <section className={`auth-card ${isRegister ? 'registration-card' : 'login-card'}`} aria-labelledby="brand-heading">
+        <main className="flex min-h-screen min-h-svh items-center justify-center bg-[#f7f9fb] px-4 py-8 font-sans text-slate-900 sm:px-6 sm:py-12">
+            <section
+                aria-labelledby="auth-heading"
+                className="w-full max-w-[500px] rounded-2xl border border-[#d7e1ee] bg-white p-5 sm:p-6"
+            >
                 <header>
-                    <h1 id="brand-heading">DPERCP</h1>
-                    <p className="subtitle">{isRegister ? text.registerTitle : text.signInTitle}</p>
+                    <h1
+                        id="auth-heading"
+                        className="text-[30px] leading-tight font-semibold tracking-tight text-[#203d63]"
+                    >
+                        DPERCP
+                    </h1>
+
+                    <p className="mt-5 text-base leading-7 text-[#4b5d78] sm:text-lg">
+                        {isRegister
+                            ? 'Request a DMC staff account.'
+                            : 'Sign in with your DMC account. Staff only.'}
+                    </p>
                 </header>
 
-                <form onSubmit={submit} noValidate aria-busy={pending}>
-                    <fieldset disabled={pending}>
-                        <div className="fields">
-                            {isRegister ? <>
-                                {field('name', text.name, text.namePlaceholder, 'text', 'name')}
-                                {field('email', text.email, text.identifierPlaceholder, 'email', 'email')}
-                                {field('phone', text.phone, text.phonePlaceholder, 'tel', 'tel')}
-                            </> : field('identifier', text.identifier, text.identifierPlaceholder, 'text', 'username')}
-                            {field('password', text.password, text.passwordPlaceholder, 'password', isRegister ? 'new-password' : 'current-password')}
-                            {isRegister && field('confirm', text.confirm, text.confirmPlaceholder, 'password', 'new-password')}
+                <form
+                    onSubmit={submit}
+                    noValidate
+                    aria-busy={pending}
+                    className="mt-5"
+                >
+                    <fieldset
+                        disabled={pending}
+                        className="min-w-0 border-0 p-0 disabled:opacity-60"
+                    >
+                        <div
+                            className={
+                                isRegister
+                                    ? 'grid gap-5'
+                                    : 'grid gap-8 sm:gap-11'
+                            }
+                        >
+                            {fields.map(field => (
+                                <InputField
+                                    key={field.name}
+                                    {...field}
+                                    value={values[field.name]}
+                                    error={errors[field.name]}
+                                    onChange={change}
+                                    canToggle={field.name === 'password'}
+                                    visible={visible}
+                                    onToggle={() => setVisible(current => !current)}
+                                />
+                            ))}
                         </div>
-                        {isRegister && <p className="approval-note">{text.reviewNote}</p>}
-                        <button className="submit-button" type="submit">
-                            {pending ? text.wait : isRegister ? text.requestAccount : text.signIn}
+
+                        {isRegister && (
+                            <p className="mt-5 text-sm leading-6 text-[#4b5d78]">
+                                Staff access is subject to administrator approval.
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            className={[
+                                'flex min-h-12 w-full cursor-pointer items-center',
+                                'justify-center rounded-[10px] bg-[#203d63]',
+                                'px-4 py-3 text-lg font-semibold text-white',
+                                'transition hover:bg-[#162f50]',
+                                'focus-visible:outline-2 focus-visible:outline-offset-4',
+                                'focus-visible:outline-[#203d63]',
+                                'disabled:cursor-wait motion-reduce:transition-none',
+                                isRegister ? 'mt-6' : 'mt-9 sm:mt-11'
+                            ].join(' ')}
+                        >
+                            {pending
+                                ? 'Please wait…'
+                                : isRegister
+                                    ? 'Request account'
+                                    : 'Sign in'}
                         </button>
-                        
                     </fieldset>
                 </form>
 
-                {notice && <div ref={statusRef} tabIndex={-1} className={`notice ${notice.error ? 'notice-error' : ''}`} role={notice.error ? 'alert' : 'status'}>{text[notice.key]}</div>}
-                <p className="switch-page">
-                    {isRegister ? text.existingAccount : text.newAccount}{' '}
-                    <a href={isRegister ? '#/login' : '#/register'} onClick={event => { if (pending) event.preventDefault(); }} aria-disabled={pending}>
-                        {isRegister ? text.signIn : text.registerLink}
+                {notice && (
+                    <div
+                        ref={statusRef}
+                        tabIndex={-1}
+                        role={notice.error ? 'alert' : 'status'}
+                        className={[
+                            'mt-5 rounded-lg border p-3 text-sm leading-6',
+                            'break-words focus:outline-none',
+                            notice.error
+                                ? 'border-red-200 bg-red-50 text-red-800'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                        ].join(' ')}
+                    >
+                        {notice.message}
+                    </div>
+                )}
+
+                <p className="mt-6 text-center text-sm leading-6 text-[#4b5d78]">
+                    {isRegister
+                        ? 'Already have an account?'
+                        : 'Need an account?'}{' '}
+
+                    <a
+                        href={isRegister ? '#/login' : '#/register'}
+                        aria-disabled={pending}
+                        onClick={event => {
+                            if (pending)
+                            {
+                                event.preventDefault();
+                            }
+                        }}
+                        className="rounded-sm font-semibold text-[#203d63] underline underline-offset-4 hover:text-[#162f50] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#203d63]"
+                    >
+                        {isRegister ? 'Sign in' : 'Register'}
                     </a>
                 </p>
-                
             </section>
         </main>
     );
