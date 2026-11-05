@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     AuthError,
     register,
@@ -14,10 +15,11 @@ const inputClasses =
 
 const requestErrors = {
     network: 'Unable to connect. Please check your connection and try again.',
-    invalid: 'Sign-in was not accepted. Check your details or contact your administrator.',
+    invalid: 'Invalid email or password, or access was denied.',
     duplicate: 'An account with those details already exists.',
     server: 'The request could not be completed. Please try again.',
-    timeout: 'The request timed out. Please try again.'
+    timeout: 'The request timed out. Please try again.',
+    validation: 'Please check your details and try again.'
 };
 
 function InputField({
@@ -126,6 +128,7 @@ function InputField({
 export default function AuthForm({ screen })
 {
     const isRegister = screen === 'register';
+    const navigate = useNavigate();
 
     const [values, setValues] = useState({
         name: '',
@@ -181,7 +184,7 @@ export default function AuthForm({ screen })
 
             if (!emailPattern.test(values.email.trim()))
             {
-                next.email = 'Enter a valid email address.';
+                next.identifier = 'Enter a valid email address.';
             }
 
             if (!phonePattern.test(cleanPhone(values.phone)))
@@ -204,117 +207,121 @@ export default function AuthForm({ screen })
             }
         }
         else
-        {
-            const identifier = values.identifier.trim();
+{
+    const identifier = values.identifier.trim();
 
-            if (
-                !emailPattern.test(identifier) &&
-                !phonePattern.test(cleanPhone(identifier))
-            )
-            {
-                next.identifier = 'Enter a valid email address or phone number.';
-            }
-
-            if (!values.password)
-            {
-                next.password = 'Enter your password.';
-            }
-        }
-
-        return next;
+    if (!emailPattern.test(identifier))
+    {
+        next.identifier = 'Enter a valid email address.';
     }
 
-    async function submit(event)
+    if (!values.password)
     {
-        event.preventDefault();
+        next.password = 'Enter your password.';
+    }
+}
 
-        if (busy.current)
+return next;
+    }
+
+async function submit(event)
+{
+    event.preventDefault();
+
+    if (busy.current)
+    {
+        return;
+    }
+
+    setNotice(null);
+
+    const next = validate();
+    setErrors(next);
+
+    const firstError = Object.keys(next)[0];
+
+    if (firstError)
+    {
+        document.getElementById(firstError)?.focus();
+        return;
+    }
+
+    busy.current = true;
+    setPending(true);
+
+    try
+    {
+        let result;
+
+        if (isRegister)
         {
-            return;
+            result = await register({
+                full_name: values.name.trim(),
+                email: values.email.trim(),
+                phone: cleanPhone(values.phone),
+                password: values.password,
+                preferred_language: 'en'
+            });
+        }
+        else
+        {
+            result = await signIn({
+                identifier: values.identifier.trim(),
+                password: values.password,
+                preferred_language: 'en'
+            });
         }
 
-        setNotice(null);
-
-        const next = validate();
-        setErrors(next);
-
-        const firstError = Object.keys(next)[0];
-
-        if (firstError)
+        if (result === 'preview')
         {
-            document.getElementById(firstError)?.focus();
-            return;
-        }
-
-        busy.current = true;
-        setPending(true);
-
-        try
-        {
-            let result;
-
-            if (isRegister)
-            {
-                result = await register({
-                    full_name: values.name.trim(),
-                    email: values.email.trim(),
-                    phone: cleanPhone(values.phone),
-                    password: values.password,
-                    preferred_language: 'en'
-                });
-            }
-            else
-            {
-                result = await signIn({
-                    identifier: values.identifier.includes('@')
-                        ? values.identifier.trim()
-                        : cleanPhone(values.identifier),
-                    password: values.password,
-                    preferred_language: 'en'
-                });
-            }
-
-            const message = result === 'preview'
-                ? 'Form validated. The backend is not connected, so no account was created or signed in.'
-                : isRegister
-                    ? 'Account request submitted. Staff access requires administrator approval.'
-                    : 'Sign-in request accepted.';
-
             setNotice({
                 error: false,
-                message
+                message: 'Form validated. Preview mode is still enabled.'
             });
 
-            if (result !== 'preview')
-            {
-                setValues(current => ({
-                    ...current,
-                    password: '',
-                    confirm: ''
-                }));
-
-                setVisible(false);
-            }
+            return;
         }
-        catch (error)
+
+        setValues(current => ({
+            ...current,
+            password: '',
+            confirm: ''
+        }));
+
+        setVisible(false);
+
+        if (isRegister)
         {
             setNotice({
-                error: true,
-                message: error instanceof AuthError
-                    ? requestErrors[error.code] || requestErrors.server
-                    : requestErrors.server
+                error: false,
+                message: 'Account created successfully. You can now sign in.'
             });
         }
-        finally
+        else
         {
-            busy.current = false;
-            setPending(false);
-
-            window.setTimeout(() => {
-                statusRef.current?.focus();
-            }, 0);
+            navigate('/', { replace: true });
         }
     }
+    catch (error)
+    {
+        setNotice({
+            error: true,
+            message: error instanceof AuthError
+                ? requestErrors[error.code] || requestErrors.server
+                : requestErrors.server
+        });
+    }
+    finally
+    {
+        busy.current = false;
+        setPending(false);
+
+        window.setTimeout(() =>
+        {
+            statusRef.current?.focus();
+        }, 0);
+    }
+}
 
     const fields = isRegister
         ? [
@@ -354,10 +361,11 @@ export default function AuthForm({ screen })
         ]
         : [
             {
-                name: 'identifier',
-                label: 'Email or phone',
-                placeholder: 'name@dmc.gov.lk',
-                autoComplete: 'username'
+               name: 'identifier',
+               label: 'Email address',
+               placeholder: 'name@dmc.gov.lk',
+               type: 'email',
+               autoComplete: 'username'
             },
             {
                 name: 'password',
@@ -383,7 +391,7 @@ export default function AuthForm({ screen })
 
                     <p className="mt-5 text-base leading-7 text-[#4b5d78] sm:text-lg">
                         {isRegister
-                            ? 'Request a DMC staff account.'
+                            ? 'Create a DMC field account.'
                             : 'Sign in with your DMC account. Staff only.'}
                     </p>
                 </header>
@@ -419,11 +427,6 @@ export default function AuthForm({ screen })
                             ))}
                         </div>
 
-                        {isRegister && (
-                            <p className="mt-5 text-sm leading-6 text-[#4b5d78]">
-                                Staff access is subject to administrator approval.
-                            </p>
-                        )}
 
                         <button
                             type="submit"
@@ -441,7 +444,7 @@ export default function AuthForm({ screen })
                             {pending
                                 ? 'Please wait…'
                                 : isRegister
-                                    ? 'Request account'
+                                    ? 'Create a account'
                                     : 'Sign in'}
                         </button>
                     </fieldset>
@@ -469,8 +472,8 @@ export default function AuthForm({ screen })
                         ? 'Already have an account?'
                         : 'Need an account?'}{' '}
 
-                    <a
-                        href={isRegister ? '#/login' : '#/register'}
+                    <Link
+                        to={isRegister ? '/login' : '/register'}
                         aria-disabled={pending}
                         onClick={event => {
                             if (pending)
@@ -481,7 +484,7 @@ export default function AuthForm({ screen })
                         className="rounded-sm font-semibold text-[#203d63] underline underline-offset-4 hover:text-[#162f50] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#203d63]"
                     >
                         {isRegister ? 'Sign in' : 'Register'}
-                    </a>
+                    </Link>
                 </p>
             </section>
         </main>

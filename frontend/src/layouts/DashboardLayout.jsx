@@ -1,3 +1,5 @@
+import LogoutButton from '../components/auth/LogoutButton.jsx';
+
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -17,7 +19,10 @@ export default function DashboardLayout({ navigationItems }) {
       />
 
       <div className="min-w-0 flex-1">
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
+      <Navbar
+          onMenuClick={() => setSidebarOpen(true)}
+          actions={<LogoutButton />}
+      />
 
         <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-7">
           <Outlet />

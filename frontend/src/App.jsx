@@ -12,7 +12,7 @@ import {
   UserCog,
   ShieldAlert,
 } from "lucide-react";
-
+import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import DashboardLayout from "./layouts/DashboardLayout";
 import Overview from "./pages/Overview";
 import Incidents from "./pages/Incidents";
@@ -44,27 +44,34 @@ const navigationItems = [
 ];
 
 export default function App() {
-  return (
+    return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route
-        element={<DashboardLayout navigationItems={navigationItems} />}
-      >
-        <Route path="/" element={<Overview />} />
-        <Route path="/incidents" element={<Incidents />} />
-        <Route path="/incidents/:id" element={<IncidentDetails />} />
-        <Route path="/tasks" element={<Tasks />} />
-        <Route path="/shelters" element={<Shelters />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/volunteers" element={<Volunteers />} />
-        <Route path="/notices" element={<Notices />} />
-        <Route path="/news-review" element={<NewsReview />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/users" element={<UsersPage />} />
-        <Route path="/hazard-types" element={<HazardTypes />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route element={<ProtectedRoute />}>
+            <Route
+                element={
+                    <DashboardLayout navigationItems={navigationItems} />
+                }
+            >
+                <Route path="/" element={<Overview />} />
+                <Route path="/incidents" element={<Incidents />} />
+                <Route path="/incidents/:id" element={<IncidentDetails />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/shelters" element={<Shelters />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/volunteers" element={<Volunteers />} />
+                <Route path="/notices" element={<Notices />} />
+                <Route path="/news-review" element={<NewsReview />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/users" element={<UsersPage />} />
+                <Route path="/hazard-types" element={<HazardTypes />} />
+            </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
-  );
+);
+  
 }
