@@ -1,5 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { prisma } from '../db/prisma.js';
 
-const shelters = JSON.parse(readFileSync(new URL('../data/shelters.json', import.meta.url)));
-
-export const list = () => shelters;
+export const list = () =>
+  prisma.shelter.findMany({
+    orderBy: { name: 'asc' },
+  });

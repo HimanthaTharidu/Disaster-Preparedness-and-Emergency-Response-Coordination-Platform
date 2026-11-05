@@ -1,6 +1,15 @@
-import { readFileSync } from 'node:fs';
+import { prisma } from '../db/prisma.js';
 
-const incidents = JSON.parse(readFileSync(new URL('../data/incidents.json', import.meta.url)));
+export const list = ({ status, priority } = {}) =>
+  prisma.incident.findMany({
+    where: {
+      ...(status ? { status } : {}),
+      ...(priority ? { priority } : {}),
+    },
+    orderBy: { reportedAt: 'desc' },
+  });
 
-export const list = () => incidents;
-export const findById = (id) => incidents.find((i) => i.id === id);
+export const findById = (id) =>
+  prisma.incident.findUnique({
+    where: { id },
+  });

@@ -2,16 +2,20 @@ import { verifyAccessToken } from '../utils/token.js';
 import { findById } from '../repositories/users.repository.js';
 import { HttpError } from '../utils/httpError.js';
 
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const [scheme, token] = (req.headers.authorization || '').split(' ');
   if (scheme !== 'Bearer' || !token) throw new HttpError(401, 'Sign in first');
+
+  let payload;
   try {
-    const user = findById(verifyAccessToken(token).sub);
-    if (!user) throw new Error('unknown user');
-    req.user = user;
+    payload = verifyAccessToken(token);
   } catch {
     throw new HttpError(401, 'Your session has expired. Sign in again');
   }
+
+  const user = await findById(payload.sub);
+  if (!user) throw new HttpError(401, 'Your session has expired. Sign in again');
+  req.user = user;
   next();
 }
 

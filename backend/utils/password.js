@@ -1,9 +1,9 @@
-import argon2 from 'argon2';
+import bcrypt from 'bcrypt';
 
 export function hashPassword(plain) {
-  return argon2.hash(plain);
+  return bcrypt.hash(plain, 12);
 }
 
 export function verifyPassword(hash, plain) {
-  return argon2.verify(hash, plain);
+  return bcrypt.compare(plain, hash);
 }
