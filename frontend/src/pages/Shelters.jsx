@@ -262,10 +262,6 @@ function AddShelterModal({ onClose }) {
             </select>
           </div>
 
-          <p className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-800">
-            Shelter creation is not available through the current backend.
-            A POST /shelters endpoint is required to save new shelters.
-          </p>
 
           <div className="flex justify-end gap-3 pt-2">
             <button
